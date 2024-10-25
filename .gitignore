@@ -1,0 +1,12 @@
+.env
+*.pem
+*.key
+*.crt
+*.txt
+*.log
+.idea
+crq/.DS_Store 
+private/*
+logs/*
+tests/*
+certs/*

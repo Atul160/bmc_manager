@@ -1,0 +1,261 @@
+definitions:
+  api.BMCType:
+    enum:
+    - dell
+    - hpe
+    - lenovoxcc
+    - lenovoimm
+    - nutanix
+    type: string
+    x-enum-varnames:
+    - Dell
+    - HPE
+    - LenovoXCC
+    - LenovoIMM
+    - Nutanix
+  api.FirmwareInfoRequest:
+    properties:
+      bmc_type:
+        $ref: '#/definitions/api.BMCType'
+      ip_address:
+        type: string
+    required:
+    - bmc_type
+    - ip_address
+    type: object
+  api.FirmwareUpdateRequest:
+    properties:
+      bmc_type:
+        $ref: '#/definitions/api.BMCType'
+      firmware_path:
+        description: Path to the firmware file
+        type: string
+      ip_address:
+        type: string
+    required:
+    - bmc_type
+    - firmware_path
+    - ip_address
+    type: object
+  api.PowerAction:
+    enum:
+    - "on"
+    - "off"
+    - reset
+    - bmcreset
+    type: string
+    x-enum-varnames:
+    - "On"
+    - "Off"
+    - Reset
+    - BMCReset
+  api.PowerRequest:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/api.PowerAction'
+        description: Power action (on, off, reset, bmcreset)
+      bmc_type:
+        allOf:
+        - $ref: '#/definitions/api.BMCType'
+        description: Dell, HPE, Lenovo, Nutanix, etc.
+      ip_address:
+        description: BMC IP address
+        type: string
+    required:
+    - action
+    - bmc_type
+    - ip_address
+    type: object
+  api.SystemInfoRequest:
+    properties:
+      bmc_type:
+        $ref: '#/definitions/api.BMCType'
+      ip_address:
+        type: string
+    required:
+    - bmc_type
+    - ip_address
+    type: object
+info:
+  contact: {}
+paths:
+  /auth:
+    get:
+      description: Authenticates a user Basic Auth against Active Directory and generates
+        a JWT token
+      responses:
+        "200":
+          description: Authenticated successfully
+          schema:
+            type: string
+        "401":
+          description: Authentication failed
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: AD Authentication
+      tags:
+      - auth
+  /fimrware:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint updates the firmware of a BMC device.
+      parameters:
+      - description: Firmware Update request parameters
+        in: body
+        name: firmware_request
+        required: true
+        schema:
+          $ref: '#/definitions/api.FirmwareUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Firmware Update for BMC
+      tags:
+      - update
+  /fimrwareinfo:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the firmware info of a BMC device.
+      parameters:
+      - description: Firmware info request parameters
+        in: body
+        name: firmware_info
+        required: true
+        schema:
+          $ref: '#/definitions/api.FirmwareInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Firmware Info for BMC
+      tags:
+      - info
+  /power:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows the user to power on/off/reset a BMC device.
+      parameters:
+      - description: Power request parameters
+        in: body
+        name: power_request
+        required: true
+        schema:
+          $ref: '#/definitions/api.PowerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Manage power for BMC
+      tags:
+      - power
+  /systeminfo:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the system info of a BMC device.
+      parameters:
+      - description: System Info request parameters
+        in: body
+        name: system_info
+        required: true
+        schema:
+          $ref: '#/definitions/api.SystemInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: System Info for BMC
+      tags:
+      - info
+swagger: "2.0"
