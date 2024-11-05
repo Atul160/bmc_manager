@@ -94,10 +94,6 @@ func InvokeRestAPI(url, method string, headers map[string]string, username, pass
 		return nil, fmt.Errorf(string(bodyBytes))
 	}
 
-	// Log the request and response
-	// log.Printf("Request: %s %s", method, url)
-	// log.Printf("Response: %d %s", resp.StatusCode, strings.TrimSpace(string(respBody)))
-
 	return resp, nil
 }
 

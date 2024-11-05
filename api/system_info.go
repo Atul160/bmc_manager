@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bmc_manager/services"
-	"bmc_manager/utils"
+	"ecc-bmc/services"
+	"ecc-bmc/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,10 +19,12 @@ import (
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /systeminfo [post]
+// @Router /bmc/systeminfo [post]
+// @Security		JWT
 func SystemInfoHandler(c *gin.Context) {
 	var req SystemInfoRequest
 
+	// Bind JSON body to SystemInfoRequest object
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.LogError("Invalid system info request", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

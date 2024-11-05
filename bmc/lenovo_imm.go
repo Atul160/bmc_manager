@@ -1,8 +1,8 @@
 package bmc
 
 import (
-	"bmc_manager/utils"
 	"bytes"
+	"ecc-bmc/utils"
 	"encoding/json"
 	"fmt"
 	"strings"

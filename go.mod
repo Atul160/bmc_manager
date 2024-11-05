@@ -1,4 +1,4 @@
-module bmc_manager
+module ecc-bmc
 
 go 1.23
 

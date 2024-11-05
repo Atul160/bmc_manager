@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"bmc_manager/utils"
+	"ecc-bmc/utils"
 
 	"github.com/gin-gonic/gin"
 )

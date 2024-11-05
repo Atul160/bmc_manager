@@ -1,8 +1,8 @@
 package bmc
 
 import (
-	"bmc_manager/utils"
 	"bytes"
+	"ecc-bmc/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -102,11 +102,23 @@ func (c *HPEILOClient) GetSystemInfo() (map[string]interface{}, error) {
 
 // GetFirmwareInfo implements BMCClient.
 func (c *HPEILOClient) GetFirmwareInfo() (map[string]interface{}, error) {
-	url := fmt.Sprintf("https://%s/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)", c.IPAddress)
-	response, err := utils.InvokeRestAPI(url, "GET", nil, c.Username, c.Password, nil)
+	url := fmt.Sprintf("https://%s/redfish/v1/UpdateService/?$expand=", c.IPAddress)
+
+	var response *http.Response
+	var err error
+
+	response, err = utils.InvokeRestAPI(url, "GET", nil, c.Username, c.Password, nil)
 	if err != nil {
-		return nil, err
+		session, _ := c.Connect()
+		headers := map[string]string{
+			"X-Auth-Token": session["X-Auth-Token"],
+		}
+		response, err = utils.InvokeRestAPI(url, "GET", headers, "", "", nil)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	result, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err

@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -22,8 +21,6 @@ func InitLogger() {
 func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
-		authHeader := c.GetHeader("Authorization")
-		fmt.Println(authHeader)
 
 		// Process request
 		c.Next()

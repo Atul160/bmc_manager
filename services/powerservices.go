@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bmc_manager/bmc"
-	"bmc_manager/utils"
+	"ecc-bmc/bmc"
+	"ecc-bmc/utils"
 	"errors"
 	"fmt"
 	"slices"

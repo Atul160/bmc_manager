@@ -79,30 +79,26 @@ definitions:
     type: object
 info:
   contact: {}
+  version: "1.0"
 paths:
-  /auth:
-    get:
-      description: Authenticates a user Basic Auth against Active Directory and generates
-        a JWT token
+  /bmc/auth:
+    post:
+      consumes:
+      - application/json
+      description: generate JWT token with basic authentication
+      produces:
+      - application/json
       responses:
         "200":
-          description: Authenticated successfully
+          description: OK
           schema:
             type: string
-        "401":
-          description: Authentication failed
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: AD Authentication
+      security:
+      - BasicAuth: []
+      summary: Generate Token
       tags:
-      - auth
-  /fimrware:
+      - Token
+  /bmc/fimrware:
     post:
       consumes:
       - application/json
@@ -135,10 +131,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - JWT: []
       summary: Firmware Update for BMC
       tags:
       - update
-  /fimrwareinfo:
+  /bmc/fimrwareinfo:
     post:
       consumes:
       - application/json
@@ -175,10 +173,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - JWT: []
       summary: Firmware Info for BMC
       tags:
       - info
-  /power:
+  /bmc/power:
     post:
       consumes:
       - application/json
@@ -215,10 +215,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - JWT: []
       summary: Manage power for BMC
       tags:
       - power
-  /systeminfo:
+  /bmc/systeminfo:
     post:
       consumes:
       - application/json
@@ -255,7 +257,21 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - JWT: []
       summary: System Info for BMC
       tags:
       - info
+security:
+- BasicAuth: []
+  JWT: []
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  JWT:
+    description: 'JWT Authorization header using the Bearer schema. Example: "Authorization:
+      Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

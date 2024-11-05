@@ -15,40 +15,41 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth": {
-            "get": {
-                "description": "Authenticates a user Basic Auth against Active Directory and generates a JWT token",
-                "tags": [
-                    "auth"
+        "/bmc/auth": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
                 ],
-                "summary": "AD Authentication",
+                "description": "generate JWT token with basic authentication",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Token"
+                ],
+                "summary": "Generate Token",
                 "responses": {
                     "200": {
-                        "description": "Authenticated successfully",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication failed",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
             }
         },
-        "/fimrware": {
+        "/bmc/fimrware": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "This endpoint updates the firmware of a BMC device.",
                 "consumes": [
                     "application/json"
@@ -102,8 +103,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/fimrwareinfo": {
+        "/bmc/fimrwareinfo": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "This endpoint fetches the firmware info of a BMC device.",
                 "consumes": [
                     "application/json"
@@ -163,8 +169,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/power": {
+        "/bmc/power": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "This endpoint allows the user to power on/off/reset a BMC device.",
                 "consumes": [
                     "application/json"
@@ -224,8 +235,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/systeminfo": {
+        "/bmc/systeminfo": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "This endpoint fetches the system info of a BMC device.",
                 "consumes": [
                     "application/json"
@@ -399,12 +415,29 @@ const docTemplate = `{
                 }
             }
         }
-    }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        },
+        "JWT": {
+            "description": "JWT Authorization header using the Bearer schema. Example: \"Authorization: Bearer {token}\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "security": [
+        {
+            "BasicAuth": [],
+            "JWT": []
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},

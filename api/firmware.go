@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bmc_manager/services"
-	"bmc_manager/utils"
+	"ecc-bmc/services"
+	"ecc-bmc/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,8 @@ import (
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /fimrwareinfo [post]
+// @Router /bmc/fimrwareinfo [post]
+// @Security		JWT
 func FirmwareInfoHandler(c *gin.Context) {
 	var req FirmwareInfoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -49,7 +50,8 @@ func FirmwareInfoHandler(c *gin.Context) {
 // @Success 200 {object} map[string]bool "Success response"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /fimrware [post]
+// @Router /bmc/fimrware [post]
+// @Security		JWT
 func FirmwareUpdateHandler(c *gin.Context) {
 	var req FirmwareUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

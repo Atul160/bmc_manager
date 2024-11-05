@@ -2,7 +2,7 @@
 package middleware
 
 import (
-	"bmc_manager/utils"
+	"ecc-bmc/utils"
 	"net/http"
 	"os"
 	"strings"

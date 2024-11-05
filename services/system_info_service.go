@@ -1,23 +1,9 @@
 package services
 
 import (
-	"bmc_manager/bmc"
-	"bmc_manager/utils"
+	"ecc-bmc/bmc"
+	"ecc-bmc/utils"
 )
-
-type SystemInfo struct {
-	Device         interface{} `json:"device,omitempty"`
-	Health         string      `json:"health,omitempty"`
-	Manufacturer   string      `json:"manufacturer,omitempty"`
-	PowerState     interface{} `json:"powerstate"`
-	Model          string      `json:"model,omitempty"`
-	BiosVersion    string      `json:"biosversion,omitempty"`
-	SerialNumber   string      `json:"serialnumber,omitempty"`
-	HostName       interface{} `json:"hostname,omitempty"`
-	ResponseStatus string      `json:"responsestatus,omitempty"`
-	Memory         interface{} `json:"memory,omitempty"`
-	CPU            interface{} `json:"cpu,omitempty"`
-}
 
 // GetSystemInfo retrieves system information for the specified BMC.
 func GetSystemInfo(bmcType, ipAddress string) (SystemInfo, error) {
@@ -45,9 +31,11 @@ func GetSystemInfo(bmcType, ipAddress string) (SystemInfo, error) {
 	if ok {
 		result.HostName = inforesult["HostName"].(string)
 	}
+	
 	result.Manufacturer = inforesult["Manufacturer"].(string)
 	result.Model = inforesult["Model"].(string)
 	result.PowerState = inforesult["PowerState"].(string)
+	
 	_, ok = inforesult["BiosVersion"]
 	if ok {
 		result.BiosVersion = inforesult["BiosVersion"].(string)

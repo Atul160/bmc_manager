@@ -1,30 +1,40 @@
 package main
 
 import (
-	"bmc_manager/api"
-	"bmc_manager/config"
-	"bmc_manager/middleware"
+	"ecc-bmc/api"
+	"ecc-bmc/config"
+	"ecc-bmc/middleware"
 	"log"
-
-	// docs "bmc_manager/docs" // This is needed to load the swagger docs
+	"strings"
+	"os"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
+
+	docs "ecc-bmc/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// func init() {
-// 	// this will fill the placeholders dynamically based on environment.
-// 	docs.SwaggerInfo.Title = fmt.Sprintf("ECC ServiceNow Incident Endpoint [%s]", strings.ToUpper(snowhelper.AppInstance))
-// 	docs.SwaggerInfo.Description = fmt.Sprintf("ECC ServiceNow Incident Endpoint & This is an %s instance", snowhelper.AppInstance)
+func init() {
+	// this will fill the placeholders dynamically based on environment.
+	docs.SwaggerInfo.Title = fmt.Sprintf("ECC BMC Endpoint [%s]", strings.ToUpper(os.Getenv("ENV")))
+	docs.SwaggerInfo.Description = fmt.Sprintf("ECC BMC Endpoint & This is an %s instance", os.Getenv("ENV"))
 
-// }
+}
 
+// @version					1.0
+// @Security     BasicAuth || JWT
+// @securityDefinitions.basic	BasicAuth
+// @securityDefinitions.apiKey	JWT
+// @in							header
+// @name						Authorization
+// @schema						Bearer token
+// @description JWT Authorization header using the Bearer schema. Example: "Authorization: Bearer {token}"
 func main() {
 	// gin.SetMode(gin.ReleaseMode)
 	// Initialize the Gin router
 	router := gin.Default()
-	// router := echo.New()
 
 	// Load configuration (e.g., BMC credentials, API keys)
 	config.Load()
@@ -40,19 +50,17 @@ func main() {
 	// Intialize file logging
 	middleware.InitLogger()
 
+	// API route for Authentication
+	router.POST("/bmc/auth", api.TokenHandler)
+
 	// Define API routes
-	router.GET("/bmc/systeminfo", api.SystemInfoHandler)
-	router.GET("/bmc/firmwareinfo", middleware.JWTAuthMiddleware(), api.FirmwareInfoHandler)
-	router.POST("/bmc/power", api.PowerHandler)
-	router.POST("/bmc/firmware", middleware.JWTAuthMiddleware(), api.FirmwareUpdateHandler)
+	router.POST("/bmc/systeminfo", middleware.JWTAuthMiddleware(), api.SystemInfoHandler)
+	router.POST("/bmc/firmwareinfo", api.FirmwareInfoHandler)
+	router.POST("/bmc/power", middleware.JWTAuthMiddleware(), api.PowerHandler)
+	router.POST("/bmc/firmware", api.FirmwareUpdateHandler)
 
-	// Serve Swagger UI files
-	router.StaticFile("/swagger-docs/doc.json", "./docs/swagger.json")
-
-	// Handle Swagger UI requests
-	router.GET("/swagger/*any",
-		ginSwagger.WrapHandler(swaggerFiles.Handler,
-			ginSwagger.URL("http://localhost:8081/swagger-docs/doc.json")))
+	// Swagger UI endpoint
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Start the server
 	log.Println("Starting BMC Manager API server...")

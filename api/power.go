@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bmc_manager/services"
-	"bmc_manager/utils"
+	"ecc-bmc/services"
+	"ecc-bmc/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,8 @@ import (
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /power [post]
+// @Router /bmc/power [post]
+// @Security		JWT
 func PowerHandler(c *gin.Context) {
 	var req PowerRequest
 	// var data map[string]interface{}
