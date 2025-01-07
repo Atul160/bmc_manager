@@ -56,6 +56,9 @@ func InvokeRestAPI(url, method string, headers map[string]string, username, pass
 		req.Header.Set(key, value)
 	}
 
+	// Disable Expect header
+	req.Header.Set("Expect", "")
+
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Content-Type", "application/json")
 
@@ -73,45 +76,27 @@ func InvokeRestAPI(url, method string, headers map[string]string, username, pass
 	// Check for non-200 status codes
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-
-		// jsonString := strings.TrimPrefix(string(bodyBytes), "error response: ")
-		// body, _ := UnMarshalJSON(bodyBytes)
-
-		// var errorResponse ErrorResponse
-		// if err := json.Unmarshal([]byte(jsonString), &errorResponse); err != nil {
-		// 	log.Fatalf("Error unmarshaling JSON: %v", err)
-		// }
-
-		// // Convert the slice []string field into a joined string for each ExtendedInfo entry
-		// for i := range errorResponse.Error.ExtendedInfo {
-		// 	// Joining []string fields with comma or other delimiter
-		// 	errorResponse.Error.ExtendedInfo[i].MessageArgs = strings.Join([]string{}, ",")
-		// }
-
-		// df := dataframe.LoadStructs(errorResponse.Error.ExtendedInfo)
-		// errmsg := df.Subset(0).Col("Message").Records()[0]
-
 		return nil, fmt.Errorf(string(bodyBytes))
 	}
 
 	return resp, nil
 }
 
-func ReadResponseBody(resp *http.Response) (map[string]interface{}, error) {
+func ReadResponseBody(resp *http.Response) (map[string]interface{}, string, error) {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %w", err)
+		return nil, "", fmt.Errorf("error reading response body: %w", err)
 	}
 
 	var data map[string]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
+		return nil, "", fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 
-	return data, nil
+	return data, string(body), nil
 }
 
 func ReadRequestBody(resp *http.Request) (map[string]interface{}, error) {
@@ -143,7 +128,7 @@ func MarshalJSON(v interface{}) []byte {
 func UnMarshalJSON(jsonData []byte) (map[string]interface{}, error) {
 	var data map[string]interface{}
 	if err := json.Unmarshal(jsonData, &data); err != nil {
-		return nil, fmt.Errorf("Error unmarshaling JSON: %w", err)
+		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 	return data, nil
 }

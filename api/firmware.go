@@ -10,8 +10,8 @@ import (
 
 // FirmwareInfoHandler handles firmware info requests
 // @Summary Firmware Info for BMC
-// @Description This endpoint fetches the firmware info of a BMC device.
-// @Tags info
+// @Description This endpoint fetches the firmware info of a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].
+// @Tags Info
 // @Accept json
 // @Produce json
 // @Param firmware_info body FirmwareInfoRequest true "Firmware info request parameters"
@@ -43,14 +43,14 @@ func FirmwareInfoHandler(c *gin.Context) {
 // FirmwareUpdateHandler handles firmware update requests
 // @Summary Firmware Update for BMC
 // @Description This endpoint updates the firmware of a BMC device.
-// @Tags update
+// @Tags Patch
 // @Accept json
 // @Produce json
 // @Param firmware_request body FirmwareUpdateRequest true "Firmware Update request parameters"
 // @Success 200 {object} map[string]bool "Success response"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /bmc/fimrware [post]
+// @Router /bmc/firmwareupdate [post]
 // @Security		JWT
 func FirmwareUpdateHandler(c *gin.Context) {
 	var req FirmwareUpdateRequest

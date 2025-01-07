@@ -36,11 +36,11 @@ func (c *LenovoIMMClient) SetPower(action string) error {
 	}
 
 	//execute ssh cmds for old imm to perform power actions
-	if action == "On" {
+	if action == "on" {
 		_, err = utils.ExecuteSSHCommand(client, "power on")
-	} else if action == "Off" {
+	} else if action == "off" {
 		_, err = utils.ExecuteSSHCommand(client, "power off")
-	} else if action == "Cycle" {
+	} else if action == "reset" {
 		_, err = utils.ExecuteSSHCommand(client, "power cycle")
 	}
 
@@ -98,7 +98,7 @@ func (c *LenovoIMMClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

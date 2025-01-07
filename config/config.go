@@ -43,7 +43,7 @@ func Load() Config {
 	}
 
 	return Config{
-		ServerPort: getEnv("SERVER_PORT", "8080"),
+		ServerPort: getEnv("SERVER_PORT", "8081"),
 		Env:        getEnv("ENV", "cert"),
 		LogLevel:   getEnv("LOG_LEVEL", "info"),
 		JWTSecret:  os.Getenv("JWTSecret"),

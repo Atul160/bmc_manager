@@ -10,8 +10,8 @@ import (
 
 // PowerHandler handles power management requests.
 // @Summary Manage power for BMC
-// @Description This endpoint allows the user to power on/off/reset a BMC device.
-// @Tags power
+// @Description This endpoint allows the user to run power actions [on | off | reset | bmcreset] on a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].
+// @Tags Power
 // @Accept json
 // @Produce json
 // @Param power_request body PowerRequest true "Power request parameters"

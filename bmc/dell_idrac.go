@@ -63,7 +63,7 @@ func (c *DellIDRACClient) GetSystemInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *DellIDRACClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

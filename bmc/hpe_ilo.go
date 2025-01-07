@@ -30,7 +30,6 @@ func (c *HPEILOClient) Connect() (map[string]string, error) {
 		"Password": c.Password,
 	}
 	payload, _ := json.Marshal(body)
-
 	response, err := utils.InvokeRestAPI(url, "POST", nil, "", "", bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
@@ -92,7 +91,7 @@ func (c *HPEILOClient) GetSystemInfo() (map[string]interface{}, error) {
 		}
 	}
 
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +118,7 @@ func (c *HPEILOClient) GetFirmwareInfo() (map[string]interface{}, error) {
 		}
 	}
 
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +147,7 @@ func (c *HPEILOClient) sendRedfishRequest(url string, body map[string]string) er
 		headers := map[string]string{
 			"X-Auth-Token": session["X-Auth-Token"],
 		}
+
 		_, err = utils.InvokeRestAPI(url, "POST", headers, "", "", bytes.NewBuffer(payload))
 		if err != nil {
 			return err

@@ -20,11 +20,16 @@ func loadEnvVars() map[string]string {
 // NewBMCClient creates a BMC client based on the provided BMC type (Dell, HPE, Lenovo, Nutanix).
 func NewBMCClient(bmcType, ipAddress string) (BMCClient, error) {
 	envvars := loadEnvVars()
+	// fmt.Println(utils.ResolveDNS(ipAddress))
 	switch bmcType {
 	case "dell":
 		return NewDellIDRACClient(ipAddress, envvars["IDRAC_USERNAME"], envvars["IDRAC_PASSWORD"]), nil
 	case "hpe":
-		return NewHPEILOClient(ipAddress, envvars["Stores_ILO_USERNAME"], envvars["Stores_ILO_PASSWORD"]), nil
+		if strings.HasPrefix(ipAddress, "nlc") || strings.HasPrefix(ipAddress, "vhst") || strings.HasPrefix(ipAddress, "vsh") {
+			return NewHPEILOClient(ipAddress, envvars["Stores_ILO_USERNAME"], envvars["Stores_ILO_PASSWORD"]), nil
+		} else {
+			return NewHPEILOClient(ipAddress, envvars["DC_ILO_USERNAME"], envvars["DC_ILO_PASSWORD"]), nil
+		}
 	case "lenovoxcc":
 		return NewLenovoXCCClient(ipAddress, envvars["XCC_USERNAME"], envvars["XCC_PASSWORD"]), nil
 	case "lenovoimm":

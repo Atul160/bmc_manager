@@ -1,9 +1,7 @@
 package middleware
 
 import (
-	"encoding/base64"
 	"net/http"
-	"strings"
 
 	"ecc-bmc/utils"
 
@@ -36,31 +34,12 @@ func ADAuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Extract the Basic Auth credentials
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Basic" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
+		username, password, ok := c.Request.BasicAuth()
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization"})
 			c.Abort()
 			return
 		}
-
-		// Decode the base64 encoded credentials
-		decoded, err := base64.StdEncoding.DecodeString(parts[1])
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to decode credentials"})
-			c.Abort()
-			return
-		}
-
-		// Split username and password
-		credentials := strings.SplitN(string(decoded), ":", 2)
-		if len(credentials) != 2 {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials format"})
-			c.Abort()
-			return
-		}
-
-		username := credentials[0]
-		password := credentials[1]
 
 		// Authenticate the user
 		if err := utils.AuthenticateADUser(username, password); err != nil {

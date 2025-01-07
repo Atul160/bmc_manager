@@ -15,12 +15,6 @@ type Credentials struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type CustomClaims struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	jwt.StandardClaims
-}
-
 // var cfg = config.Load()
 
 // AuthenticateUser authenticates a user against Active Directory
@@ -50,6 +44,12 @@ var JWTSecret []byte = []byte(os.Getenv("JWTSecret"))
 
 type Claims struct {
 	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+type CustomClaims struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 	jwt.StandardClaims
 }
 

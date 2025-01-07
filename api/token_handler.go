@@ -4,12 +4,13 @@ package api
 import (
 	"ecc-bmc/utils"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
 // @Summary		Generate Token
 // @Description	generate JWT token with basic authentication
-// @Tags			Token
+// @Tags			Auth
 // @Accept			json
 // @Produce		json
 // @Success		200	{string}	string	"OK"
@@ -23,7 +24,7 @@ func TokenHandler(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	
+
 	// Extract the Basic Auth credentials
 	username, password, ok := c.Request.BasicAuth()
 	if !ok {

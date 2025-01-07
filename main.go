@@ -4,14 +4,14 @@ import (
 	"ecc-bmc/api"
 	"ecc-bmc/config"
 	"ecc-bmc/middleware"
-	"log"
-	"strings"
-	"os"
 	"fmt"
-
-	"github.com/gin-gonic/gin"
+	"log"
+	"os"
+	"strings"
 
 	docs "ecc-bmc/docs"
+
+	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -36,8 +36,8 @@ func main() {
 	// Initialize the Gin router
 	router := gin.Default()
 
-	// Load configuration (e.g., BMC credentials, API keys)
-	config.Load()
+	// Load env configuration (e.g., ServerPort, API keys)
+	envconfig := config.Load()
 
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
@@ -55,16 +55,16 @@ func main() {
 
 	// Define API routes
 	router.POST("/bmc/systeminfo", middleware.JWTAuthMiddleware(), api.SystemInfoHandler)
-	router.POST("/bmc/firmwareinfo", api.FirmwareInfoHandler)
+	router.POST("/bmc/firmwareinfo", middleware.JWTAuthMiddleware(), api.FirmwareInfoHandler)
 	router.POST("/bmc/power", middleware.JWTAuthMiddleware(), api.PowerHandler)
-	router.POST("/bmc/firmware", api.FirmwareUpdateHandler)
+	router.POST("/bmc/firmwareupdate", middleware.JWTAuthMiddleware(), api.FirmwareUpdateHandler)
 
 	// Swagger UI endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Start the server
-	log.Println("Starting BMC Manager API server...")
-	if err := router.Run("localhost:8081"); err != nil {
+	log.Printf("Starting BMC Manager API server [%s]...", envconfig.Env)
+	if err := router.Run(":" + envconfig.ServerPort); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

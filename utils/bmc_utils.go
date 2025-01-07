@@ -1,10 +1,50 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 )
 
-func validatePowerOptions(input string, bmctype string) bool {
+func GetBMCType(ipAddress string) (string, error) {
+
+	var bmctype = "unknown"
+	var url = "https://" + ipAddress + "/redfish/v1"
+
+	// if !PingIP(ipAddress) {
+	// 	return "", fmt.Errorf("Unable to ping %s", ipAddress)
+	// }
+
+	resp, err := InvokeRestAPI(url, "GET", nil, "", "", nil)
+	if err != nil {
+		if TCPPing(ipAddress, "22") {
+			return "lenovoimm", nil
+		} else {
+			return bmctype, err
+		}
+	}
+
+	_, resultstring, err := ReadResponseBody(resp)
+	if err != nil {
+		// return "", err
+		fmt.Print(err)
+	}
+
+	if strings.Contains(resultstring, "redfish") {
+		if strings.Contains(resultstring, "HP RESTful") {
+			bmctype = "hpe"
+		} else if strings.Contains(resultstring, "Dell") {
+			bmctype = "dell"
+		} else if strings.Contains(resultstring, "Lenovo") {
+			bmctype = "lenovoxcc"
+		} else {
+			bmctype = "nutanix"
+		}
+	}
+
+	return bmctype, err
+}
+
+func ValidatePowerOptions(input string, bmctype string) bool {
 	var allowedOptions []string
 	if bmctype == "dell" {
 		allowedOptions = []string{

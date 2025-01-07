@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"reflect"
 	"strings"
 	"time"
@@ -30,10 +31,25 @@ func GetCurrentTime() string {
 	return now.Format("2006-01-02 15:04:05")
 }
 
-// Ping function to check the availability of the IP
-func CheckPing(ip string, timeout int) bool {
-	_, err := net.DialTimeout("ip4:icmp", ip, time.Duration(timeout)*time.Second)
+func TCPPing(ip string, port string) bool {
+	timeout := time.Second * 2
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(ip, port), timeout)
 	if err != nil {
+		fmt.Printf("TCP ping failed: %v\n", err)
+		log.Printf("TCP ping failed: %v\n", err)
+		return false
+	}
+	conn.Close()
+	return true
+}
+
+// Fallback method using shell command
+func shellPing(ip string) bool {
+	cmd := exec.Command("ping", "-c", "2", "-t", "2", ip)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("Shell ping failed: %v\n", err)
+		log.Printf("Shell ping failed: %v\n", err)
 		return false
 	}
 	return true
@@ -42,33 +58,34 @@ func CheckPing(ip string, timeout int) bool {
 // Ping function to check the availability of the IP
 func PingIP(ip string) bool {
 	pinger, err := ping.NewPinger(ip)
-	pinger.SetPrivileged(true)
 	if err != nil {
-		log.Printf("Error creating pinger: %v\n", err)
-		return false
+		fmt.Printf("Error creating pinger: %v. Falling back to shell ping.\n", err)
+		log.Printf("Error creating pinger: %v. Falling back to shell ping.\n", err)
+		return shellPing(ip) // Fallback method
 	}
-	pinger.Count = 3 // Send 3 pings
+
+	pinger.SetPrivileged(true)
+	pinger.Count = 2 // Send 2 pings
 	pinger.Timeout = time.Second * 2
 
 	err = pinger.Run()
 	if err != nil {
+		fmt.Printf("Ping failed: %v\n", err)
 		log.Printf("Ping failed: %v\n", err)
 		return false
 	}
 
 	stats := pinger.Statistics()
-	if stats.PacketsRecv > 0 {
-		return true
-	}
-	return false
+
+	return stats.PacketsRecv > 0
 }
 
-// ResolveFQDN takes an IP address as input and returns the FQDN
-func ResolveFQDN(ipAddress string) (string, error) {
+// ResolveDNS takes an IP address as input and returns the FQDN
+func ResolveDNS(ipAddress string) (string, error) {
 	// Perform reverse DNS lookup using net.LookupAddr
 	names, err := net.LookupAddr(ipAddress)
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve FQDN for IP address %s: %v", ipAddress, err)
+		return "", fmt.Errorf("failed to resolve DNS for %s: %v", ipAddress, err)
 	}
 
 	// Check if any domain names were found

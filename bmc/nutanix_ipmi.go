@@ -63,7 +63,7 @@ func (c *NutanixIPMIClient) GetSystemInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +80,11 @@ func (c *NutanixIPMIClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := utils.ReadResponseBody(response)
+	result, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
-	// var result map[string]interface{}
-	// if err := json.Unmarshal(response, &result); err != nil {
-	// 	return nil, err
-	// }
+
 	return result, nil
 }
 
@@ -103,7 +100,6 @@ func (c *NutanixIPMIClient) sendRedfishRequest(url string, body map[string]strin
 	if err != nil {
 		return fmt.Errorf("error marshalling request body: %w", err)
 	}
-
 	_, err = utils.InvokeRestAPI(url, "POST", nil, c.Username, c.Password, bytes.NewBuffer(payload))
 	return err
 }

@@ -2,12 +2,23 @@ package services
 
 import (
 	"ecc-bmc/bmc"
+	"ecc-bmc/utils"
+	"errors"
 	"fmt"
 	"os"
 )
 
 // Get Firmware Info retrieves Firmware information for the specified BMC.
 func GetFirmwareInfo(bmcType, ipAddress string) (map[string]interface{}, error) {
+
+	if bmcType == "" {
+		var err = errors.New("")
+		bmcType, err = utils.GetBMCType(ipAddress)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
 	client, err := bmc.NewBMCClient(bmcType, ipAddress)
 	if err != nil {
 		return nil, err

@@ -10,8 +10,8 @@ import (
 
 // SystemInfoHandler handles system info retrieval requests
 // @Summary System Info for BMC
-// @Description This endpoint fetches the system info of a BMC device.
-// @Tags info
+// @Description This endpoint fetches the system info of a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].
+// @Tags Info
 // @Accept json
 // @Produce json
 // @Param system_info body SystemInfoRequest true "System Info request parameters"
@@ -24,6 +24,11 @@ import (
 func SystemInfoHandler(c *gin.Context) {
 	var req SystemInfoRequest
 
+	// // Set default value for BMCType if not provided
+	// if req.BMCType == "" {
+	// 	req.BMCType = BMCType("")
+	// }
+
 	// Bind JSON body to SystemInfoRequest object
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.LogError("Invalid system info request", err)
@@ -33,6 +38,7 @@ func SystemInfoHandler(c *gin.Context) {
 
 	// Call the system info retrieval service
 	// info, err := services.GetSystemInfo(c.Query("bmc_type"), c.Query("ip_address"))
+
 	info, err := services.GetSystemInfo(string(req.BMCType), req.IPAddress)
 	if err != nil {
 		utils.LogError("System info retrieval failed", err)

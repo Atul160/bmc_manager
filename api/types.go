@@ -22,26 +22,26 @@ const (
 )
 
 type PowerRequest struct {
-	BMCType   BMCType     `json:"bmc_type" binding:"required"`   // Dell, HPE, Lenovo, Nutanix, etc.
+	BMCType   BMCType     `json:"bmc_type" binding:"omitempty"`  // Dell, HPE, Lenovo, Nutanix, etc.
 	IPAddress string      `json:"ip_address" binding:"required"` // BMC IP address
 	Action    PowerAction `json:"action" binding:"required"`     // Power action (on, off, reset, bmcreset)
 }
 
 // SystemInfoRequest defines the request body for querying system info
 type SystemInfoRequest struct {
-	BMCType   BMCType `json:"bmc_type" binding:"required"`
+	BMCType   BMCType `json:"bmc_type" binding:"omitempty"`
 	IPAddress string  `json:"ip_address" binding:"required"`
 }
 
 // FirmwareUpdateRequest defines the request body for firmware update operations
 type FirmwareInfoRequest struct {
-	BMCType   BMCType `json:"bmc_type" binding:"required"`
+	BMCType   BMCType `json:"bmc_type" binding:"omitempty"`
 	IPAddress string  `json:"ip_address" binding:"required"`
 }
 
 // FirmwareUpdateRequest defines the request body for firmware update operations
 type FirmwareUpdateRequest struct {
-	BMCType      BMCType `json:"bmc_type" binding:"required"`
+	BMCType      BMCType `json:"bmc_type" binding:"omitempty"`
 	IPAddress    string  `json:"ip_address" binding:"required"`
 	FirmwarePath string  `json:"firmware_path" binding:"required"` // Path to the firmware file
 }
@@ -56,12 +56,12 @@ func validatePowerAction(action PowerAction) error {
 	return fmt.Errorf("invalid power action: %s", action)
 }
 
-func validateBMCType(action BMCType) error {
-	validActions := []BMCType{Dell, HPE, LenovoXCC, LenovoIMM, Nutanix}
-	for _, validAction := range validActions {
-		if action == validAction {
+func validateBMCType(bmcType BMCType) error {
+	validBMCTypes := []BMCType{Dell, HPE, LenovoXCC, LenovoIMM, Nutanix}
+	for _, validBMCType := range validBMCTypes {
+		if bmcType == validBMCType {
 			return nil
 		}
 	}
-	return fmt.Errorf("invalid power action: %s", action)
+	return fmt.Errorf("invalid bmc type: %s", bmcType)
 }
