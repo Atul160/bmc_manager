@@ -34,7 +34,7 @@ type ErrorResponse struct {
 func InvokeRestAPI(url, method string, headers map[string]string, username, password string, body io.Reader) (*http.Response, error) {
 	// Create the HTTP client with SSL verification disabled
 	client := &http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 30,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
@@ -73,30 +73,32 @@ func InvokeRestAPI(url, method string, headers map[string]string, username, pass
 	// 	return nil, fmt.Errorf("unexpected response status code: %d", resp.StatusCode)
 	// }
 
+	// fmt.Print(resp)
+
 	// Check for non-200 status codes
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf(string(bodyBytes))
+		return nil, fmt.Errorf("%s", string(bodyBytes))
 	}
 
 	return resp, nil
 }
 
-func ReadResponseBody(resp *http.Response) (map[string]interface{}, string, error) {
+func ReadResponseBody(resp *http.Response) (map[string]interface{}, []byte, string, error) {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", fmt.Errorf("error reading response body: %w", err)
+		return nil, nil, "", fmt.Errorf("error reading response body: %w", err)
 	}
 
 	var data map[string]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return nil, "", fmt.Errorf("error unmarshaling JSON: %w", err)
+		return nil, nil, "", fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 
-	return data, string(body), nil
+	return data, body, string(body), nil
 }
 
 func ReadRequestBody(resp *http.Request) (map[string]interface{}, error) {

@@ -3,16 +3,26 @@ package services
 import (
 	"ecc-bmc/bmc"
 	"ecc-bmc/utils"
-	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
-// Get Firmware Info retrieves Firmware information for the specified BMC.
-func GetFirmwareInfo(bmcType, ipAddress string) (map[string]interface{}, error) {
+func GetFirmwareInfoParallel(bmcType, ipAddresses string) []FirmwareResult {
+	ips := strings.Split(ipAddresses, ",")
+	return utils.ParallelExecute(ips, func(ip string) (FirmwareResult, error) {
+		data, err := GetFirmwareInfo(bmcType, ip)
+		if err != nil {
+			return FirmwareResult{IPAddress: ip, Error: err.Error()}, nil
+		}
+		return FirmwareResult{IPAddress: ip, Data: data}, nil
+	})
+}
 
+// GetFirmwareInfo retrieves Firmware information for a single BMC.
+func GetFirmwareInfo(bmcType, ipAddress string) (map[string]interface{}, error) {
 	if bmcType == "" {
-		var err = errors.New("")
+		var err error
 		bmcType, err = utils.GetBMCType(ipAddress)
 		if err != nil {
 			fmt.Println(err)

@@ -6,6 +6,7 @@ type BMCClient interface {
 	BMCReset() error
 	SetPower(string) error
 	GetSystemInfo() (map[string]interface{}, error)
+	GetLogs(string) ([]map[string]interface{}, error)
 	GetFirmwareInfo() (map[string]interface{}, error)
 	UpdateFirmware(filePath string) error
 }

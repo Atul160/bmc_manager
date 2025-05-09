@@ -15,6 +15,11 @@ type HPEILOClient struct {
 	Password  string
 }
 
+// GetLogs implements BMCClient.
+func (c *HPEILOClient) GetLogs(logType string) ([]map[string]interface{}, error) {
+	panic("unimplemented")
+}
+
 func NewHPEILOClient(ipAddress, username, password string) *HPEILOClient {
 	return &HPEILOClient{
 		IPAddress: ipAddress,
@@ -39,6 +44,7 @@ func (c *HPEILOClient) Connect() (map[string]string, error) {
 		"X-Auth-Token": response.Header["X-Auth-Token"][0],
 		"Location":     response.Header["Location"][0],
 	}
+	// fmt.Print(result)
 	return result, nil
 }
 
@@ -54,7 +60,7 @@ func (c *HPEILOClient) SetPower(action string) error {
 	case "reset":
 		resettype = "ForceRestart"
 	default:
-		return errors.New("Invalid Power Action")
+		return errors.New("invalid power action")
 	}
 	body := map[string]string{
 		"ResetType": resettype,
@@ -91,7 +97,7 @@ func (c *HPEILOClient) GetSystemInfo() (map[string]interface{}, error) {
 		}
 	}
 
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +124,7 @@ func (c *HPEILOClient) GetFirmwareInfo() (map[string]interface{}, error) {
 		}
 	}
 
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

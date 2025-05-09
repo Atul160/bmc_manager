@@ -14,9 +14,14 @@ type NutanixIPMIClient struct {
 	Password  string
 }
 
+// GetLogs implements BMCClient.
+func (c *NutanixIPMIClient) GetLogs(logType string) ([]map[string]interface{}, error) {
+	panic("unimplemented")
+}
+
 // Connect implements BMCClient.
 func (c *NutanixIPMIClient) Connect() (map[string]string, error) {
-	return nil, fmt.Errorf("This operation is unimplemented")
+	return nil, fmt.Errorf("this operation is unimplemented")
 }
 
 func NewNutanixIPMIClient(ipAddress, username, password string) *NutanixIPMIClient {
@@ -39,7 +44,7 @@ func (c *NutanixIPMIClient) SetPower(action string) error {
 	case "reset":
 		resettype = "ForceRestart"
 	default:
-		return errors.New("Invalid Power Action")
+		return errors.New("invalid ppower action")
 	}
 	body := map[string]string{
 		"ResetType": resettype,
@@ -63,7 +68,7 @@ func (c *NutanixIPMIClient) GetSystemInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +85,7 @@ func (c *NutanixIPMIClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

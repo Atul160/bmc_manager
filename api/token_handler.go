@@ -4,6 +4,7 @@ package api
 import (
 	"ecc-bmc/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,8 +13,8 @@ import (
 // @Description	generate JWT token with basic authentication
 // @Tags			Auth
 // @Accept			json
-// @Produce		json
-// @Success		200	{string}	string	"OK"
+// @Produce			json
+// @Success			200	{string}	string	"OK"
 // @Router			/bmc/auth [POST]
 // @Security		BasicAuth
 func TokenHandler(c *gin.Context) {
@@ -35,7 +36,11 @@ func TokenHandler(c *gin.Context) {
 
 	// Authenticate using AD
 	if err := utils.AuthenticateADUser(username, password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid AD credentials"})
+		if strings.Contains(err.Error(), "Invalid") {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
@@ -47,5 +52,5 @@ func TokenHandler(c *gin.Context) {
 	}
 
 	// Return JWT token
-	c.JSON(http.StatusOK, gin.H{"token": token, "expiry": expiry})
+	c.JSON(http.StatusOK, gin.H{"token": token, "token_type": "bearer", "expiry": expiry})
 }

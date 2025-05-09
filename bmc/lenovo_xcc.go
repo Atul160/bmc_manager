@@ -14,9 +14,14 @@ type LenovoXCCClient struct {
 	Password  string
 }
 
+// GetLogs implements BMCClient.
+func (c *LenovoXCCClient) GetLogs(logType string) ([]map[string]interface{}, error) {
+	panic("unimplemented")
+}
+
 // Connect implements BMCClient.
 func (c *LenovoXCCClient) Connect() (map[string]string, error) {
-	return nil, fmt.Errorf("This operation is unimplemented")
+	return nil, fmt.Errorf("this operation is unimplemented")
 }
 
 func NewLenovoXCCClient(ipAddress, username, password string) *LenovoXCCClient {
@@ -39,7 +44,7 @@ func (c *LenovoXCCClient) SetPower(action string) error {
 	case "reset":
 		resettype = "ForceRestart"
 	default:
-		return errors.New("Invalid Power Action")
+		return errors.New("invalid power action")
 	}
 	body := map[string]string{
 		"ResetType": resettype,
@@ -63,7 +68,7 @@ func (c *LenovoXCCClient) GetSystemInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +84,7 @@ func (c *LenovoXCCClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

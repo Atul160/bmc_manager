@@ -4,6 +4,7 @@ import (
 	"ecc-bmc/services"
 	"ecc-bmc/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,7 @@ import (
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /bmc/fimrwareinfo [post]
+// @Router /bmc/firmwareinfo [post]
 // @Security		JWT
 func FirmwareInfoHandler(c *gin.Context) {
 	var req FirmwareInfoRequest
@@ -29,13 +30,9 @@ func FirmwareInfoHandler(c *gin.Context) {
 		return
 	}
 
-	// Call the firmware info service
-	info, err := services.GetFirmwareInfo(string(req.BMCType), req.IPAddress)
-	if err != nil {
-		utils.LogError("Firmware info retrieval failed", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	utils.LogInfo("Get Firmware Info - " + req.IPAddress + ", initiated by: " + c.GetString("user"))
+
+	info := services.GetFirmwareInfoParallel(strings.ToLower(string(req.BMCType)), strings.ToLower(req.IPAddress))
 
 	c.JSON(http.StatusOK, gin.H{"firmware_info": info})
 }
@@ -52,6 +49,7 @@ func FirmwareInfoHandler(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /bmc/firmwareupdate [post]
 // @Security		JWT
+// @Deprecated true
 func FirmwareUpdateHandler(c *gin.Context) {
 	var req FirmwareUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -61,7 +59,7 @@ func FirmwareUpdateHandler(c *gin.Context) {
 	}
 
 	// Call the firmware update service
-	success, err := services.UpdateFirmware(string(req.BMCType), req.IPAddress, req.FirmwarePath)
+	success, err := services.UpdateFirmware(strings.ToLower(string(req.BMCType)), strings.ToLower(req.IPAddress), strings.ToLower(req.FirmwarePath))
 	if err != nil {
 		utils.LogError("Firmware update failed", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

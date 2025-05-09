@@ -23,7 +23,7 @@ func GetBMCType(ipAddress string) (string, error) {
 		}
 	}
 
-	_, resultstring, err := ReadResponseBody(resp)
+	_, _, resultstring, err := ReadResponseBody(resp)
 	if err != nil {
 		// return "", err
 		fmt.Print(err)

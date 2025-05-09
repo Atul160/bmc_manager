@@ -14,9 +14,14 @@ type LenovoIMMClient struct {
 	Password  string
 }
 
+// GetLogs implements BMCClient.
+func (c *LenovoIMMClient) GetLogs(logType string) ([]map[string]interface{}, error) {
+	panic("unimplemented")
+}
+
 // Connect implements BMCClient.
 func (c *LenovoIMMClient) Connect() (map[string]string, error) {
-	return nil, fmt.Errorf("This operation is unimplemented")
+	return nil, fmt.Errorf("this operation is unimplemented")
 }
 
 func NewLenovoIMMClient(ipAddress, username, password string) *LenovoIMMClient {
@@ -45,7 +50,7 @@ func (c *LenovoIMMClient) SetPower(action string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error performing Action:%s on %s:%s", action, c.IPAddress, err)
+		return fmt.Errorf("error performing Action:%s on %s:%s", action, c.IPAddress, err)
 	} else {
 		return nil
 	}
@@ -69,7 +74,7 @@ func (c *LenovoIMMClient) GetSystemInfo() (map[string]interface{}, error) {
 
 	out, err := utils.ExecuteSSHCommand(sshconn, "syshealth summary")
 	if err != nil {
-		return nil, fmt.Errorf("Unable to execute SSH command")
+		return nil, fmt.Errorf("unable to execute SSH command")
 	}
 
 	str := string(out)
@@ -98,7 +103,7 @@ func (c *LenovoIMMClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}

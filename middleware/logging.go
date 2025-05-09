@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +11,27 @@ import (
 
 // InitLogger initializes the logger
 func InitLogger() {
-	file, err := os.OpenFile("./logs/app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// Define the log file path
+	logFilePath := "./logs/app.log"
+
+	// Extract the directory from the log file path
+	logDir := filepath.Dir(logFilePath)
+
+	// Create the logs directory if it doesn't exist
+	err := os.MkdirAll(logDir, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create log directory: %v", err)
 	}
+
+	// Open or create the log file
+	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	// Set the output of the log package to the file
 	log.SetOutput(file)
+	log.Println("Logger initialized successfully")
 }
 
 // LoggingMiddleware logs the details of each request

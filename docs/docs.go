@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Token"
+                    "Auth"
                 ],
                 "summary": "Generate Token",
                 "responses": {
@@ -43,14 +43,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/bmc/fimrware": {
+        "/bmc/firmwareinfo": {
             "post": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "This endpoint updates the firmware of a BMC device.",
+                "description": "This endpoint fetches the firmware info of a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].",
                 "consumes": [
                     "application/json"
                 ],
@@ -58,67 +58,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "update"
-                ],
-                "summary": "Firmware Update for BMC",
-                "parameters": [
-                    {
-                        "description": "Firmware Update request parameters",
-                        "name": "firmware_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.FirmwareUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success response",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "boolean"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/bmc/fimrwareinfo": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "This endpoint fetches the firmware info of a BMC device.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "info"
+                    "Info"
                 ],
                 "summary": "Firmware Info for BMC",
                 "parameters": [
@@ -169,14 +109,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/bmc/power": {
+        "/bmc/firmwareupdate": {
             "post": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "This endpoint allows the user to power on/off/reset a BMC device.",
+                "description": "This endpoint updates the firmware of a BMC device.",
                 "consumes": [
                     "application/json"
                 ],
@@ -184,17 +124,18 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "power"
+                    "Patch"
                 ],
-                "summary": "Manage power for BMC",
+                "summary": "Firmware Update for BMC",
+                "deprecated": true,
                 "parameters": [
                     {
-                        "description": "Power request parameters",
-                        "name": "power_request",
+                        "description": "Firmware Update request parameters",
+                        "name": "firmware_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.PowerRequest"
+                            "$ref": "#/definitions/api.FirmwareUpdateRequest"
                         }
                     }
                 ],
@@ -215,6 +156,123 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/bmc/logs": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "This endpoint fetches the log info of a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Info"
+                ],
+                "summary": "Log Info for BMC",
+                "parameters": [
+                    {
+                        "description": "log Info request parameters",
+                        "name": "log_info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.LogsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/bmc/power": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "This endpoint allows the user to run power actions [on | off | reset | bmcreset] on a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Power"
+                ],
+                "summary": "Manage power for BMC",
+                "parameters": [
+                    {
+                        "description": "Power request parameters",
+                        "name": "power_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.PowerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "$ref": "#/definitions/api.PowerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
@@ -242,7 +300,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "This endpoint fetches the system info of a BMC device.",
+                "description": "This endpoint fetches the system info of a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].",
                 "consumes": [
                     "application/json"
                 ],
@@ -250,7 +308,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "info"
+                    "Info"
                 ],
                 "summary": "System Info for BMC",
                 "parameters": [
@@ -268,19 +326,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Success response",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "boolean"
-                            }
+                            "$ref": "#/definitions/api.SystemInfoResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
@@ -320,10 +372,24 @@ const docTemplate = `{
                 "Nutanix"
             ]
         },
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "HTTP status code",
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "description": "Error message",
+                    "type": "string",
+                    "example": "Bad Request"
+                }
+            }
+        },
         "api.FirmwareInfoRequest": {
             "type": "object",
             "required": [
-                "bmc_type",
                 "ip_address"
             ],
             "properties": {
@@ -338,7 +404,6 @@ const docTemplate = `{
         "api.FirmwareUpdateRequest": {
             "type": "object",
             "required": [
-                "bmc_type",
                 "firmware_path",
                 "ip_address"
             ],
@@ -352,6 +417,36 @@ const docTemplate = `{
                 },
                 "ip_address": {
                     "type": "string"
+                }
+            }
+        },
+        "api.LogType": {
+            "type": "string",
+            "enum": [
+                "system",
+                "management",
+                "fault"
+            ],
+            "x-enum-varnames": [
+                "System",
+                "Management",
+                "Fault"
+            ]
+        },
+        "api.LogsRequest": {
+            "type": "object",
+            "required": [
+                "ip_address"
+            ],
+            "properties": {
+                "bmc_type": {
+                    "$ref": "#/definitions/api.BMCType"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "log_type": {
+                    "$ref": "#/definitions/api.LogType"
                 }
             }
         },
@@ -374,7 +469,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "action",
-                "bmc_type",
                 "ip_address"
             ],
             "properties": {
@@ -400,10 +494,23 @@ const docTemplate = `{
                 }
             }
         },
+        "api.PowerResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Power action executed successfully"
+                },
+                "status": {
+                    "description": "Status of the action",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "api.SystemInfoRequest": {
             "type": "object",
             "required": [
-                "bmc_type",
                 "ip_address"
             ],
             "properties": {
@@ -411,6 +518,34 @@ const docTemplate = `{
                     "$ref": "#/definitions/api.BMCType"
                 },
                 "ip_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.SystemInfoResponse": {
+            "type": "object",
+            "properties": {
+                "biosversion": {
+                    "type": "string"
+                },
+                "cpu": {},
+                "device": {},
+                "health": {
+                    "type": "string"
+                },
+                "hostname": {},
+                "manufacturer": {
+                    "type": "string"
+                },
+                "memory": {},
+                "model": {
+                    "type": "string"
+                },
+                "powerstate": {},
+                "responsestatus": {
+                    "type": "string"
+                },
+                "serialnumber": {
                     "type": "string"
                 }
             }

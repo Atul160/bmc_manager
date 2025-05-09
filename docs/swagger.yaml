@@ -13,6 +13,17 @@ definitions:
     - LenovoXCC
     - LenovoIMM
     - Nutanix
+  api.ErrorResponse:
+    properties:
+      code:
+        description: HTTP status code
+        example: 400
+        type: integer
+      message:
+        description: Error message
+        example: Bad Request
+        type: string
+    type: object
   api.FirmwareInfoRequest:
     properties:
       bmc_type:
@@ -20,7 +31,6 @@ definitions:
       ip_address:
         type: string
     required:
-    - bmc_type
     - ip_address
     type: object
   api.FirmwareUpdateRequest:
@@ -33,8 +43,28 @@ definitions:
       ip_address:
         type: string
     required:
-    - bmc_type
     - firmware_path
+    - ip_address
+    type: object
+  api.LogType:
+    enum:
+    - system
+    - management
+    - fault
+    type: string
+    x-enum-varnames:
+    - System
+    - Management
+    - Fault
+  api.LogsRequest:
+    properties:
+      bmc_type:
+        $ref: '#/definitions/api.BMCType'
+      ip_address:
+        type: string
+      log_type:
+        $ref: '#/definitions/api.LogType'
+    required:
     - ip_address
     type: object
   api.PowerAction:
@@ -64,8 +94,17 @@ definitions:
         type: string
     required:
     - action
-    - bmc_type
     - ip_address
+    type: object
+  api.PowerResponse:
+    properties:
+      message:
+        example: Power action executed successfully
+        type: string
+      status:
+        description: Status of the action
+        example: true
+        type: boolean
     type: object
   api.SystemInfoRequest:
     properties:
@@ -74,8 +113,27 @@ definitions:
       ip_address:
         type: string
     required:
-    - bmc_type
     - ip_address
+    type: object
+  api.SystemInfoResponse:
+    properties:
+      biosversion:
+        type: string
+      cpu: {}
+      device: {}
+      health:
+        type: string
+      hostname: {}
+      manufacturer:
+        type: string
+      memory: {}
+      model:
+        type: string
+      powerstate: {}
+      responsestatus:
+        type: string
+      serialnumber:
+        type: string
     type: object
 info:
   contact: {}
@@ -97,50 +155,13 @@ paths:
       - BasicAuth: []
       summary: Generate Token
       tags:
-      - Token
-  /bmc/fimrware:
+      - Auth
+  /bmc/firmwareinfo:
     post:
       consumes:
       - application/json
-      description: This endpoint updates the firmware of a BMC device.
-      parameters:
-      - description: Firmware Update request parameters
-        in: body
-        name: firmware_request
-        required: true
-        schema:
-          $ref: '#/definitions/api.FirmwareUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success response
-          schema:
-            additionalProperties:
-              type: boolean
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - JWT: []
-      summary: Firmware Update for BMC
-      tags:
-      - update
-  /bmc/fimrwareinfo:
-    post:
-      consumes:
-      - application/json
-      description: This endpoint fetches the firmware info of a BMC device.
+      description: This endpoint fetches the firmware info of a BMC device [dell |
+        hpe | lenovoxcc | lenovoimm | nutanix].
       parameters:
       - description: Firmware info request parameters
         in: body
@@ -177,19 +198,20 @@ paths:
       - JWT: []
       summary: Firmware Info for BMC
       tags:
-      - info
-  /bmc/power:
+      - Info
+  /bmc/firmwareupdate:
     post:
       consumes:
       - application/json
-      description: This endpoint allows the user to power on/off/reset a BMC device.
+      deprecated: true
+      description: This endpoint updates the firmware of a BMC device.
       parameters:
-      - description: Power request parameters
+      - description: Firmware Update request parameters
         in: body
-        name: power_request
+        name: firmware_request
         required: true
         schema:
-          $ref: '#/definitions/api.PowerRequest'
+          $ref: '#/definitions/api.FirmwareUpdateRequest'
       produces:
       - application/json
       responses:
@@ -205,6 +227,82 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JWT: []
+      summary: Firmware Update for BMC
+      tags:
+      - Patch
+  /bmc/logs:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the log info of a BMC device [dell | hpe
+        | lenovoxcc | lenovoimm | nutanix].
+      parameters:
+      - description: log Info request parameters
+        in: body
+        name: log_info
+        required: true
+        schema:
+          $ref: '#/definitions/api.LogsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JWT: []
+      summary: Log Info for BMC
+      tags:
+      - Info
+  /bmc/power:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows the user to run power actions [on | off |
+        reset | bmcreset] on a BMC device [dell | hpe | lenovoxcc | lenovoimm | nutanix].
+      parameters:
+      - description: Power request parameters
+        in: body
+        name: power_request
+        required: true
+        schema:
+          $ref: '#/definitions/api.PowerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            $ref: '#/definitions/api.PowerResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -219,12 +317,13 @@ paths:
       - JWT: []
       summary: Manage power for BMC
       tags:
-      - power
+      - Power
   /bmc/systeminfo:
     post:
       consumes:
       - application/json
-      description: This endpoint fetches the system info of a BMC device.
+      description: This endpoint fetches the system info of a BMC device [dell | hpe
+        | lenovoxcc | lenovoimm | nutanix].
       parameters:
       - description: System Info request parameters
         in: body
@@ -238,15 +337,11 @@ paths:
         "200":
           description: Success response
           schema:
-            additionalProperties:
-              type: boolean
-            type: object
+            $ref: '#/definitions/api.SystemInfoResponse'
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/api.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -261,7 +356,7 @@ paths:
       - JWT: []
       summary: System Info for BMC
       tags:
-      - info
+      - Info
 security:
 - BasicAuth: []
   JWT: []

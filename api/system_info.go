@@ -4,6 +4,7 @@ import (
 	"ecc-bmc/services"
 	"ecc-bmc/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,19 +16,14 @@ import (
 // @Accept json
 // @Produce json
 // @Param system_info body SystemInfoRequest true "System Info request parameters"
-// @Success 200 {object} map[string]bool "Success response"
-// @Failure 400 {object} map[string]string "Bad request"
+// @Success 200 {object} SystemInfoResponse "Success response"
+// @Failure 400 {object} ErrorResponse "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /bmc/systeminfo [post]
 // @Security		JWT
 func SystemInfoHandler(c *gin.Context) {
 	var req SystemInfoRequest
-
-	// // Set default value for BMCType if not provided
-	// if req.BMCType == "" {
-	// 	req.BMCType = BMCType("")
-	// }
 
 	// Bind JSON body to SystemInfoRequest object
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -36,15 +32,9 @@ func SystemInfoHandler(c *gin.Context) {
 		return
 	}
 
-	// Call the system info retrieval service
-	// info, err := services.GetSystemInfo(c.Query("bmc_type"), c.Query("ip_address"))
+	utils.LogInfo("Get System Info - " + req.IPAddress + ", initiated by: " + c.GetString("user"))
 
-	info, err := services.GetSystemInfo(string(req.BMCType), req.IPAddress)
-	if err != nil {
-		utils.LogError("System info retrieval failed", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	info := services.GetSystemInfoParallel(strings.ToLower(string(req.BMCType)), strings.ToLower(req.IPAddress))
 
 	c.JSON(http.StatusOK, gin.H{"system_info": info})
 }

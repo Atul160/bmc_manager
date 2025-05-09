@@ -8,4 +8,5 @@
 crq/.DS_Store 
 private/*
 logs/*
+certs/*
 tests/*

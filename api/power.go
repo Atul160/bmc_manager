@@ -4,6 +4,7 @@ import (
 	"ecc-bmc/services"
 	"ecc-bmc/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +16,8 @@ import (
 // @Accept json
 // @Produce json
 // @Param power_request body PowerRequest true "Power request parameters"
-// @Success 200 {object} map[string]bool "Success response"
-// @Failure 400 {object} map[string]string "Bad request"
+// @Success 200 {object} PowerResponse "Success response"
+// @Failure 400 {object} ErrorResponse "Bad request"
 // @Failure	401	{string} string	"Unauthorized"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /bmc/power [post]
@@ -30,16 +31,14 @@ func PowerHandler(c *gin.Context) {
 		return
 	}
 
-	if err := validatePowerAction(req.Action); err != nil {
+	if err := ValidatePowerAction(req.Action); err != nil {
 		// Handle error
 	}
 
-	success, err := services.ManagePower(string(req.BMCType), req.IPAddress, string(req.Action))
-	if err != nil {
-		utils.LogError("Power management failed", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	utils.LogInfo("Power Action: " + string(req.Action) + ", for " + req.IPAddress + ", initiated by: " + c.GetString("user"))
 
-	c.JSON(http.StatusOK, gin.H{"success": success})
+	result := services.ManagePower(strings.ToLower(string(req.BMCType)), strings.ToLower(req.IPAddress), strings.ToLower(string(req.Action)))
+
+	c.JSON(http.StatusOK, gin.H{"result": result})
+
 }

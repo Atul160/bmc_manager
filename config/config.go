@@ -15,17 +15,17 @@ type BMCConfig struct {
 
 // Config holds the application-wide configuration values
 type Config struct {
-	ServerPort      string
-	Env             string
-	LogLevel        string
-	JWTSecret       string
-	LDAPConfig      LDAPConfig
-	DellConfig      BMCConfig
-	DCHPEConfig     BMCConfig
-	StoresHPEConfig BMCConfig
-	LenovoXCCConfig BMCConfig
-	LenovoIMMConfig BMCConfig
-	DCNutanixConfig BMCConfig
+	ServerPort         string
+	Env                string
+	LogLevel           string
+	JWTSecret          string
+	LDAPConfig         LDAPConfig
+	DellConfig         BMCConfig
+	DCHPEConfig        BMCConfig
+	vertical1HPEConfig BMCConfig
+	LenovoXCCConfig    BMCConfig
+	LenovoIMMConfig    BMCConfig
+	DCNutanixConfig    BMCConfig
 }
 
 // LDAPConfig holds LDAP configuration
@@ -37,13 +37,13 @@ type LDAPConfig struct {
 
 // Load loads configuration from environment variables
 func Load() Config {
-	err := godotenv.Load()
+	err := godotenv.Load("./secrets/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
 	}
 
 	return Config{
-		ServerPort: getEnv("SERVER_PORT", "8081"),
+		ServerPort: getEnv("SERVER_PORT", "8086"),
 		Env:        getEnv("ENV", "cert"),
 		LogLevel:   getEnv("LOG_LEVEL", "info"),
 		JWTSecret:  os.Getenv("JWTSecret"),
@@ -60,7 +60,7 @@ func Load() Config {
 			Username: os.Getenv("HPE_BMC_USERNAME"),
 			Password: os.Getenv("HPE_BMC_PASSWORD"),
 		},
-		StoresHPEConfig: BMCConfig{
+		vertical1HPEConfig: BMCConfig{
 			Username: os.Getenv("HPE_BMC_USERNAME"),
 			Password: os.Getenv("HPE_BMC_PASSWORD"),
 		},
@@ -73,8 +73,8 @@ func Load() Config {
 			Password: os.Getenv("IMM_PASSWORD"),
 		},
 		DCNutanixConfig: BMCConfig{
-			Username: os.Getenv("DC_IPMI_USERNAME"),
-			Password: os.Getenv("DC_IPMI_PASSWORD"),
+			Username: os.Getenv("vertical2_IPMI_USERNAME"),
+			Password: os.Getenv("vertical2_IPMI_PASSWORD"),
 		},
 	}
 }

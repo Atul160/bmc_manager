@@ -3,62 +3,84 @@ package services
 import (
 	"ecc-bmc/bmc"
 	"ecc-bmc/utils"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 )
 
-// ManagePower manages power operations for different BMC types
-func ManagePower(bmcType, ipAddress, action string) (bool, error) {
-	if bmcType == "" {
-		var err = errors.New("")
-		bmcType, err = utils.GetBMCType(ipAddress)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
+// ManagePower manages power operations for multiple IPs concurrently
+func ManagePower(bmcType, ipAddresses, action string) []PowerResponse {
+	ipList := strings.Split(ipAddresses, ",") // Split comma-separated IPs
+	var wg sync.WaitGroup
+	results := make(chan PowerResponse, len(ipList)) // Channel to collect results
 
-	client, err := bmc.NewBMCClient(bmcType, ipAddress)
-	if err != nil {
-		return false, err
-	}
+	for _, ip := range ipList {
+		wg.Add(1)
+		go func(ipAddress string) {
+			defer wg.Done()
+			result := PowerResponse{IPAddress: ipAddress, Action: action}
 
-	allowedActions := []string{"on", "off", "reset", "bmcreset"}
-	if !slices.Contains(allowedActions, strings.ToLower(action)) {
-		return false, errors.New("invalid power action")
-	}
-
-	// Create a channel to receive the result and error
-	// resultChan := make(chan bool)
-	errorChan := make(chan error)
-
-	// Call the GetSystemInfo function concurrently
-	go func() {
-		if action == "bmcreset" {
-			err = client.BMCReset()
-		} else {
-			err = client.SetPower(action)
-		}
-
-		if err != nil {
-			errstring := err.Error()
-
-			if strings.Contains(errstring, "Power is on") || strings.Contains(errstring, "Server is already powered ON") {
-				errorChan <- fmt.Errorf("server is already powered on")
-			} else if strings.Contains(errstring, "Power is off") || strings.Contains(errstring, "Server is already powered OFF") {
-				errorChan <- fmt.Errorf("server is already powered off")
-			} else {
-				errorChan <- err
+			if bmcType == "" {
+				var err error
+				bmcType, err = utils.GetBMCType(ipAddress)
+				if err != nil {
+					result.Error = fmt.Sprintf("Error detecting BMC type: %v", err)
+					results <- result
+					return
+				}
 			}
-		} else {
-			errorChan <- nil
-		}
-	}()
 
-	if errorChan != nil {
-		return false, <-errorChan
-	} else {
-		return true, nil
+			client, err := bmc.NewBMCClient(bmcType, ipAddress)
+			if err != nil {
+				result.Error = fmt.Sprintf("Error creating BMC client: %v", err)
+				results <- result
+				return
+			}
+
+			allowedActions := []string{"on", "off", "reset", "bmcreset"}
+			if !slices.Contains(allowedActions, strings.ToLower(action)) {
+				result.Error = "Invalid power action"
+				results <- result
+				return
+			}
+
+			// Execute power action
+			var powerErr error
+			if action == "bmcreset" {
+				powerErr = client.BMCReset()
+			} else {
+				powerErr = client.SetPower(action)
+			}
+
+			// Handle errors with detailed messages
+			if powerErr != nil {
+				errMsg := powerErr.Error()
+				if strings.Contains(errMsg, "Power is on") || strings.Contains(errMsg, "Server is already powered ON") {
+					result.Error = "Server is already powered on"
+				} else if strings.Contains(errMsg, "Power is off") || strings.Contains(errMsg, "Server is already powered OFF") {
+					result.Error = "Server is already powered off"
+				} else {
+					result.Error = errMsg
+				}
+				results <- result
+				return
+			}
+
+			result.Success = true
+			results <- result
+		}(strings.TrimSpace(ip)) // Trim spaces to avoid errors
 	}
+
+	// Wait for all go routines to finish
+	wg.Wait()
+	close(results)
+
+	// Collect all results
+	var response []PowerResponse
+	for res := range results {
+		response = append(response, res)
+	}
+
+	return response
 }

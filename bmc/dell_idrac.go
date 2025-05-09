@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"sync"
 )
 
 type DellIDRACClient struct {
@@ -14,9 +16,93 @@ type DellIDRACClient struct {
 	Password  string
 }
 
+// GetLogs implements BMCClient.
+func (c *DellIDRACClient) GetLogs(logType string) ([]map[string]interface{}, error) {
+	logURIs := map[string]string{
+		"system":     fmt.Sprintf("https://%s/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Sel/Entries", c.IPAddress),
+		"management": fmt.Sprintf("https://%s/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries", c.IPAddress),
+		"fault":      fmt.Sprintf("https://%s/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/FaultList/Entries", c.IPAddress),
+	}
+	uri, exists := logURIs[logType]
+	if !exists {
+		return nil, fmt.Errorf("invalid log type")
+	}
+
+	resp, err := utils.InvokeRestAPI(uri, "GET", nil, c.Username, c.Password, nil)
+	if err != nil {
+		return nil, err
+	}
+	result, _, _, err := utils.ReadResponseBody(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	members, _ := result["Members"].([]interface{})
+
+	var logs []map[string]interface{}
+
+	for _, entry := range members {
+		if entryMap, ok := entry.(map[string]interface{}); ok {
+			logs = append(logs, entryMap)
+		}
+	}
+
+	var mu sync.Mutex // Mutex to avoid concurrent slice modification
+	if count, ok := result["Members@odata.count"].(float64); ok && int(count) > 50 {
+		var wg sync.WaitGroup
+		errChan := make(chan error, (int(count)-50)/50) // Channel to capture errors
+
+		for i := 50; i < 1000; i += 50 {
+			wg.Add(1)
+			go func(skip int) {
+				defer wg.Done()
+				newURI := fmt.Sprintf("%s?$skip=%d", uri, skip)
+
+				// Call API in parallel
+				chunkResp, err := utils.InvokeRestAPI(newURI, "GET", nil, c.Username, c.Password, nil)
+				if err != nil {
+					errChan <- err
+					return
+				}
+
+				chunkresult, _, _, err := utils.ReadResponseBody(chunkResp)
+				if err != nil {
+					errChan <- err
+					return
+				}
+
+				if chunkMembers, ok := chunkresult["Members"].([]interface{}); ok {
+					var tempLogs []map[string]interface{} // Temporary local slice
+					for _, chunkEntry := range chunkMembers {
+						if entryMap, ok := chunkEntry.(map[string]interface{}); ok {
+							tempLogs = append(tempLogs, entryMap)
+						}
+					}
+					mu.Lock()
+					logs = append(logs, tempLogs...) // Append results safely
+					mu.Unlock()
+				}
+			}(i) // Pass `i` as argument to prevent race conditions
+		}
+
+		wg.Wait()
+		close(errChan)
+
+		// Check for errors from goroutines
+		for err := range errChan {
+			if err != nil {
+				log.Println("Error fetching logs:", err)
+				return nil, err
+			}
+		}
+	}
+
+	return logs, nil
+}
+
 // Connect implements BMCClient.
 func (c *DellIDRACClient) Connect() (map[string]string, error) {
-	return nil, fmt.Errorf("This operation is unimplemented")
+	return nil, fmt.Errorf("this operation is unimplemented")
 }
 
 func NewDellIDRACClient(ipAddress, username, password string) *DellIDRACClient {
@@ -39,7 +125,7 @@ func (c *DellIDRACClient) SetPower(action string) error {
 	case "reset":
 		resettype = "ForceRestart"
 	default:
-		return errors.New("Invalid Power Action")
+		return errors.New("invalid power action")
 	}
 	body := map[string]string{
 		"ResetType": resettype,
@@ -63,7 +149,7 @@ func (c *DellIDRACClient) GetSystemInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +166,7 @@ func (c *DellIDRACClient) GetFirmwareInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, _, err := utils.ReadResponseBody(response)
+	result, _, _, err := utils.ReadResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +175,7 @@ func (c *DellIDRACClient) GetFirmwareInfo() (map[string]interface{}, error) {
 }
 
 func (c *DellIDRACClient) UpdateFirmware(firmwarePath string) error {
-	return errors.New("Firmware update not implemented for Dell iDRAC")
+	return errors.New("firmware update not implemented for Dell iDRAC")
 }
 
 // sendRedfishRequest is a helper method for sending Redfish actions

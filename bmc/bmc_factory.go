@@ -1,42 +1,41 @@
 package bmc
 
 import (
+	"ecc-bmc/utils"
 	"errors"
-	"os"
 	"strings"
 )
 
-func loadEnvVars() map[string]string {
-	envVars := make(map[string]string)
-	for _, env := range os.Environ() {
-		parts := strings.Split(env, "=")
-		key := parts[0]
-		value := parts[1]
-		envVars[key] = value
-	}
-	return envVars
-}
-
 // NewBMCClient creates a BMC client based on the provided BMC type (Dell, HPE, Lenovo, Nutanix).
 func NewBMCClient(bmcType, ipAddress string) (BMCClient, error) {
-	envvars := loadEnvVars()
-	// fmt.Println(utils.ResolveDNS(ipAddress))
+	envvars := utils.LoadEnvVars()
+	fqdn, err := utils.ResolveDNS(ipAddress)
+	if err != nil || fqdn == "" {
+		// fmt.Print(err)
+	} else {
+		ipAddress = fqdn
+	}
+
 	switch bmcType {
 	case "dell":
-		return NewDellIDRACClient(ipAddress, envvars["IDRAC_USERNAME"], envvars["IDRAC_PASSWORD"]), nil
+		if strings.HasPrefix(ipAddress, "vsrv") {
+			return NewDellIDRACClient(ipAddress, envvars["vertical1_WIN_IDRAC_USERNAME"], envvars["vertical1_WIN_IDRAC_PASSWORD"]), nil
+		} else {
+			return NewDellIDRACClient(ipAddress, envvars["vertical1_VM_IDRAC_USERNAME"], envvars["vertical1_VM_IDRAC_PASSWORD"]), nil
+		}
 	case "hpe":
 		if strings.HasPrefix(ipAddress, "nlc") || strings.HasPrefix(ipAddress, "vhst") || strings.HasPrefix(ipAddress, "vsh") {
-			return NewHPEILOClient(ipAddress, envvars["Stores_ILO_USERNAME"], envvars["Stores_ILO_PASSWORD"]), nil
+			return NewHPEILOClient(ipAddress, envvars["vertical1_ILO_USERNAME"], envvars["vertical1_ILO_PASSWORD"]), nil
 		} else {
-			return NewHPEILOClient(ipAddress, envvars["DC_ILO_USERNAME"], envvars["DC_ILO_PASSWORD"]), nil
+			return NewHPEILOClient(ipAddress, envvars["vertical2_ILO_USERNAME"], envvars["vertical2_ILO_PASSWORD"]), nil
 		}
 	case "lenovoxcc":
 		return NewLenovoXCCClient(ipAddress, envvars["XCC_USERNAME"], envvars["XCC_PASSWORD"]), nil
 	case "lenovoimm":
 		return NewLenovoIMMClient(ipAddress, envvars["IMM_USERNAME"], envvars["IMM_PASSWORD"]), nil
 	case "nutanix":
-		return NewNutanixIPMIClient(ipAddress, envvars["DC_IPMI_USERNAME"], envvars["DC_IPMI_PASSWORD"]), nil
+		return NewNutanixIPMIClient(ipAddress, envvars["vertical2_IPMI_USERNAME"], envvars["vertical2_IPMI_PASSWORD"]), nil
 	default:
-		return nil, errors.New("unsupported BMC type")
+		return nil, errors.New("unsupported BMC type " + bmcType)
 	}
 }

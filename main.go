@@ -17,8 +17,11 @@ import (
 )
 
 func init() {
+	// Load env configuration (e.g., ServerPort, API keys)
+	envconfig := config.Load()
+
 	// this will fill the placeholders dynamically based on environment.
-	docs.SwaggerInfo.Title = fmt.Sprintf("ECC BMC Endpoint [%s]", strings.ToUpper(os.Getenv("ENV")))
+	docs.SwaggerInfo.Title = fmt.Sprintf("ECC BMC Endpoint [%s]", strings.ToUpper(envconfig.Env))
 	docs.SwaggerInfo.Description = fmt.Sprintf("ECC BMC Endpoint & This is an %s instance", os.Getenv("ENV"))
 
 }
@@ -56,6 +59,7 @@ func main() {
 	// Define API routes
 	router.POST("/bmc/systeminfo", middleware.JWTAuthMiddleware(), api.SystemInfoHandler)
 	router.POST("/bmc/firmwareinfo", middleware.JWTAuthMiddleware(), api.FirmwareInfoHandler)
+	router.POST("/bmc/logs", middleware.JWTAuthMiddleware(), api.LogsHandler)
 	router.POST("/bmc/power", middleware.JWTAuthMiddleware(), api.PowerHandler)
 	router.POST("/bmc/firmwareupdate", middleware.JWTAuthMiddleware(), api.FirmwareUpdateHandler)
 
