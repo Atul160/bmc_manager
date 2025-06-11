@@ -44,7 +44,7 @@ func Load() Config {
 
 	return Config{
 		ServerPort: getEnv("SERVER_PORT", "8086"),
-		Env:        getEnv("ENV", "cert"),
+		Env:        getEnv("ENV", "CERT"),
 		LogLevel:   getEnv("LOG_LEVEL", "info"),
 		JWTSecret:  os.Getenv("JWTSecret"),
 		LDAPConfig: LDAPConfig{
